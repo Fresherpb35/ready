@@ -44,19 +44,15 @@ const SignupPage = () => {
     if (validateForm()) {
       console.log('Signup:', { email, password });
       alert(`Account created!\nEmail: ${email}`);
+      navigate("/login");
     }
   };
 
-  const handleMobileLogin = () => {
-    console.log('Mobile Login clicked');
-    alert('Mobile Login feature');
-  };
 
   const handleGuestContinue = () => {
     console.log('Continue as Guest clicked');
-    alert('Continuing as Guest');
+    navigate("/dashboard");
   };
-
   const handleLogin = () => {
     navigate("/login");
   };
