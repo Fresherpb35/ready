@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, ArrowLeft } from 'lucide-react';
-
+import { useNavigate } from "react-router-dom";
 // Reusable Button Component
 const Button = ({ 
   children, 
@@ -87,6 +87,9 @@ const Input = ({
 
 // Main Forgot Password Component
 const ForgotPassword = () => {
+  
+  
+const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -110,7 +113,7 @@ const ForgotPassword = () => {
     }
 
     // Successful submission
-    console.log('Password reset requested for:', email);
+   
     setIsSubmitted(true);
     
     // Simulate sending email
@@ -120,9 +123,8 @@ const ForgotPassword = () => {
   };
 
   const handleBackToLogin = () => {
-    console.log('Navigate back to login');
-    alert('Navigate back to login page');
-    // In real app: navigate('/login');
+  
+  navigate('/login');
   };
 
   const handleKeyPress = (e) => {
