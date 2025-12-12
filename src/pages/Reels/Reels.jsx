@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Home, Grid, MessageCircle, User, Plus, Heart, MessageSquare, Share2, Volume2, VolumeX, Pause, Play, X, Send } from 'lucide-react';
+import { Home, Grid, MessageCircle, User, Plus, Volume2, VolumeX, Pause, Play, X, Send, Heart, Share2 } from 'lucide-react';
 
 // Add Reel Modal
 const AddReelModal = ({ isOpen, onClose }) => {
@@ -173,54 +172,54 @@ const CommentModal = ({ isOpen, onClose, reel }) => {
   );
 };
 
-const ReelVideo = ({ reel, isActive, onLike, onComment, onShare }) => {
+const ReelVideo = ({ reel, isActive }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
 
   useEffect(() => {
     if (videoRef.current) {
-      if (isActive && isPlaying) {
-        videoRef.current.play();
+      if (isActive) {
+        videoRef.current.play().catch(() => {});
+        setIsPlaying(true);
+      } else {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    }
+  }, [isActive]);
+
+  useEffect(() => {
+    if (videoRef.current && isActive) {
+      if (isPlaying) {
+        videoRef.current.play().catch(() => {});
       } else {
         videoRef.current.pause();
       }
     }
-  }, [isActive, isPlaying]);
+  }, [isPlaying, isActive]);
 
   const togglePlayPause = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
+    setIsPlaying(!isPlaying);
   };
 
-  const toggleMute = () => {
+  const toggleMute = (e) => {
+    e.stopPropagation();
     if (videoRef.current) {
       videoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
     }
   };
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    onLike(reel.id);
-  };
-
   return (
     <div 
-      className="relative w-full h-full bg-linear-to-br from-orange-300 via-orange-400 to-yellow-400 rounded-3xl overflow-hidden"
+      className="relative w-full h-full bg-black overflow-hidden rounded-xl sm:rounded-xl lg:rounded-2xl shadow-lg"
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
       onClick={togglePlayPause}
     >
-      {/* Video or Background */}
+      {/* Video */}
       {reel.video ? (
         <video
           ref={videoRef}
@@ -241,78 +240,37 @@ const ReelVideo = ({ reel, isActive, onLike, onComment, onShare }) => {
       )}
 
       {/* Play/Pause Overlay */}
-      {showControls && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity">
-          <button className="bg-white/30 backdrop-blur-sm p-4 rounded-full">
-            {isPlaying ? <Pause size={40} className="text-white" /> : <Play size={40} className="text-white" />}
-          </button>
+      {showControls && !isPlaying && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity pointer-events-none">
+          <div className="bg-white/30 backdrop-blur-sm p-4 rounded-full">
+            <Play size={40} className="text-white" />
+          </div>
         </div>
       )}
 
       {/* linear Overlay */}
-      <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
+      <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-black/20 pointer-events-none"></div>
 
       {/* Bottom Info */}
-      <div className="absolute bottom-4 left-0 right-0 px-6 text-white pointer-events-none">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-sm opacity-90">@</span>
-          <span className="text-sm opacity-90">{reel.username}</span>
+      <div className="absolute bottom-2 sm:bottom-3 lg:bottom-4 left-0 right-0 px-3 sm:px-4 text-white pointer-events-none">
+        <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
+          <div className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 bg-linear-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
+            <span className="text-white font-bold text-[10px] sm:text-xs">@</span>
+          </div>
+          <span className="text-[10px] sm:text-xs lg:text-sm font-semibold">{reel.username}</span>
         </div>
-        <h3 className="text-2xl font-bold mb-2">{reel.title}</h3>
-        <p className="text-base opacity-90">{reel.hashtag}</p>
+        <h3 className="text-sm sm:text-base lg:text-xl font-bold mb-0.5 sm:mb-1 drop-shadow-lg">{reel.title}</h3>
+        <p className="text-[10px] sm:text-xs lg:text-sm opacity-95 font-medium">{reel.hashtag}</p>
       </div>
 
-      {/* Right Side Actions */}
-      <div className="absolute right-4 bottom-20 flex flex-col gap-5 pointer-events-auto">
+      {/* Right Side Actions - Only Mute Button */}
+      <div className="absolute right-2 sm:right-3 lg:right-4 bottom-14 sm:bottom-16 lg:bottom-20 pointer-events-auto">
+        {/* Mute Button */}
         <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            handleLike();
-          }}
-          className="flex flex-col items-center gap-1"
+          onClick={toggleMute}
+          className="w-9 h-9 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
         >
-          <div className={`w-14 h-14 ${isLiked ? 'bg-pink-500' : 'bg-white/20'} backdrop-blur-md rounded-full flex items-center justify-center hover:bg-pink-500 transition-colors`}>
-            <Heart className={`${isLiked ? 'text-white fill-white' : 'text-white'}`} size={26} />
-          </div>
-          <span className="text-white text-xs font-semibold">{reel.likes}</span>
-        </button>
-
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            onComment();
-          }}
-          className="flex flex-col items-center gap-1"
-        >
-          <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
-            <MessageSquare className="text-white" size={26} />
-          </div>
-          <span className="text-white text-xs font-semibold">{reel.comments}</span>
-        </button>
-
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            onShare();
-          }}
-          className="flex flex-col items-center gap-1"
-        >
-          <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
-            <Share2 className="text-white" size={26} />
-          </div>
-          <span className="text-white text-xs font-semibold">Share</span>
-        </button>
-
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleMute();
-          }}
-          className="flex flex-col items-center gap-1"
-        >
-          <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
-            {isMuted ? <VolumeX className="text-white" size={26} /> : <Volume2 className="text-white" size={26} />}
-          </div>
+          {isMuted ? <VolumeX className="text-white" size={18} /> : <Volume2 className="text-white" size={18} />}
         </button>
       </div>
     </div>
@@ -320,12 +278,12 @@ const ReelVideo = ({ reel, isActive, onLike, onComment, onShare }) => {
 };
 
 const ReelsPage = () => {
-  const navigate = useNavigate();
   const [currentReelIndex, setCurrentReelIndex] = useState(0);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const containerRef = useRef(null);
   const touchStartY = useRef(0);
+  const isScrolling = useRef(false);
 
   const reels = [
     {
@@ -335,6 +293,7 @@ const ReelsPage = () => {
       hashtag: '#fun',
       likes: '1.2K',
       comments: '234',
+      video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
       thumbnail: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=400&h=800&fit=crop'
     },
     {
@@ -344,6 +303,7 @@ const ReelsPage = () => {
       hashtag: '#nature #beauty',
       likes: '2.5K',
       comments: '456',
+      video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
       thumbnail: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=800&fit=crop'
     },
     {
@@ -353,6 +313,7 @@ const ReelsPage = () => {
       hashtag: '#travel #vacation',
       likes: '3.8K',
       comments: '678',
+      video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
       thumbnail: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400&h=800&fit=crop'
     },
     {
@@ -362,6 +323,7 @@ const ReelsPage = () => {
       hashtag: '#foodie #yummy',
       likes: '1.9K',
       comments: '321',
+      video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
       thumbnail: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=800&fit=crop'
     },
   ];
@@ -371,43 +333,50 @@ const ReelsPage = () => {
   };
 
   const handleTouchEnd = (e) => {
+    if (isScrolling.current) return;
+    
     const touchEndY = e.changedTouches[0].clientY;
     const diff = touchStartY.current - touchEndY;
 
+    // Require at least 50px swipe to change reel
     if (Math.abs(diff) > 50) {
-      if (diff > 0) {
-        setCurrentReelIndex((prev) => (prev + 1) % reels.length);
-      } else {
-        setCurrentReelIndex((prev) => (prev - 1 + reels.length) % reels.length);
+      isScrolling.current = true;
+      if (diff > 0 && currentReelIndex < reels.length - 1) {
+        setCurrentReelIndex(currentReelIndex + 1);
+      } else if (diff < 0 && currentReelIndex > 0) {
+        setCurrentReelIndex(currentReelIndex - 1);
       }
+      setTimeout(() => {
+        isScrolling.current = false;
+      }, 600);
     }
   };
 
   const handleWheel = (e) => {
+    e.preventDefault();
+    if (isScrolling.current) return;
+
+    // Require more scroll distance to prevent accidental scrolling
     if (Math.abs(e.deltaY) > 30) {
-      if (e.deltaY > 0) {
-        setCurrentReelIndex((prev) => (prev + 1) % reels.length);
-      } else {
-        setCurrentReelIndex((prev) => (prev - 1 + reels.length) % reels.length);
+      isScrolling.current = true;
+      if (e.deltaY > 0 && currentReelIndex < reels.length - 1) {
+        setCurrentReelIndex(currentReelIndex + 1);
+      } else if (e.deltaY < 0 && currentReelIndex > 0) {
+        setCurrentReelIndex(currentReelIndex - 1);
       }
+      setTimeout(() => {
+        isScrolling.current = false;
+      }, 600);
     }
   };
 
-  const handleLike = (reelId) => {
-    console.log('Liked reel:', reelId);
-  };
-
-  const handleComment = () => {
-    setShowCommentModal(true);
-  };
-
-  const handleShare = () => {
-    console.log('Share reel');
-    alert('Share functionality - Copy link or share to social media');
+  const handleNavigation = (path) => {
+    // Navigation using window.location for different pages
+    window.location.href = path;
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-pink-50 via-purple-50 to-blue-50 flex">
+    <div className="h-screen bg-linear-to-br from-pink-50 via-purple-50 to-blue-50 flex overflow-hidden">
       {/* Left Sidebar Navigation - Desktop */}
       <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white shadow-lg z-40">
         <div className="p-6 border-b border-gray-200">
@@ -421,7 +390,7 @@ const ReelsPage = () => {
 
         <nav className="flex-1 p-4 space-y-2">
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => handleNavigation('/dashboard')}
             className="w-full flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-pink-50 transition-colors text-left group"
           >
             <Home size={24} className="text-gray-600 group-hover:text-pink-500" />
@@ -429,7 +398,7 @@ const ReelsPage = () => {
           </button>
 
           <button
-            onClick={() => navigate('/reels')}
+            onClick={() => handleNavigation('/reels')}
             className="w-full flex items-center gap-4 px-4 py-3 rounded-lg bg-pink-50 transition-colors text-left"
           >
             <Grid size={24} className="text-pink-500" />
@@ -437,7 +406,7 @@ const ReelsPage = () => {
           </button>
 
           <button
-            onClick={() => navigate('/userList')}
+            onClick={() => handleNavigation('/userList')}
             className="w-full flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-pink-50 transition-colors text-left group"
           >
             <MessageCircle size={24} className="text-gray-600 group-hover:text-pink-500" />
@@ -445,7 +414,7 @@ const ReelsPage = () => {
           </button>
 
           <button
-            onClick={() => navigate('/myprofile')}
+            onClick={() => handleNavigation('/myprofile')}
             className="w-full flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-pink-50 transition-colors text-left group"
           >
             <User size={24} className="text-gray-600 group-hover:text-pink-500" />
@@ -457,7 +426,7 @@ const ReelsPage = () => {
           <h3 className="font-bold mb-2">Go Premium</h3>
           <p className="text-sm mb-3 opacity-90">Unlock all features!</p>
           <button
-            onClick={() => navigate('/premium')}
+            onClick={() => handleNavigation('/premium')}
             className="w-full bg-white text-pink-500 py-2 px-4 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors"
           >
             Upgrade
@@ -466,49 +435,53 @@ const ReelsPage = () => {
       </aside>
 
       {/* Main Content Wrapper */}
-      <div className="flex-1 lg:ml-64 flex flex-col">
-        {/* Header */}
-        <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-30">
-          <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 lg:hidden bg-linear-to-br from-pink-400 to-pink-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">R</span>
+      <div className="flex-1 lg:ml-64 flex flex-col h-screen">
+        {/* Header - Now visible on mobile with logo */}
+        <header className="bg-white/80 backdrop-blur-md shadow-sm z-30 shrink-0">
+          <div className="px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-linear-to-br from-pink-400 to-pink-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-base sm:text-lg">R</span>
               </div>
-              <h1 className="text-2xl font-bold text-pink-500">R U Ready</h1>
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-pink-500">R U Ready</h1>
             </div>
 
             <button 
               onClick={() => setShowAddModal(true)}
-              className="bg-linear-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 p-3 rounded-full shadow-lg transition-all hover:scale-105"
+              className="bg-linear-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 p-2 sm:p-3 rounded-full shadow-lg transition-all hover:scale-105"
             >
-              <Plus className="text-white" size={24} />
+              <Plus className="text-white" size={20} />
             </button>
           </div>
         </header>
 
-        {/* Reels Container with Margin */}
+        {/* Reels Container - Adjusted height for header */}
         <main 
           ref={containerRef}
-          className="flex-1 overflow-hidden p-4 lg:p-8"
+          className="flex-1 overflow-hidden"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
           onWheel={handleWheel}
         >
           <div 
-            className="h-full transition-transform duration-500 ease-out"
+            className="h-full transition-transform duration-500 ease-out relative"
             style={{ 
               transform: `translateY(-${currentReelIndex * 100}%)`,
             }}
           >
             {reels.map((reel, index) => (
-              <div key={reel.id} className="h-full pb-4 lg:pb-8">
-                <div className="h-full max-w-md mx-auto">
+              <div 
+                key={reel.id} 
+                className="absolute top-0 left-0 w-full h-full flex items-center justify-center py-2 px-4 sm:py-6 sm:px-6 lg:py-8 lg:px-8"
+                style={{
+                  transform: `translateY(${index * 100}%)`
+                }}
+              >
+                {/* Mobile: Contained with padding, Desktop: Contained */}
+                <div className="w-full max-w-sm h-[calc(75vh-40px)] sm:max-w-md sm:h-[calc(78vh-50px)] lg:max-w-lg lg:h-[85vh]">
                   <ReelVideo 
                     reel={reel} 
                     isActive={index === currentReelIndex}
-                    onLike={handleLike}
-                    onComment={handleComment}
-                    onShare={handleShare}
                   />
                 </div>
               </div>
@@ -517,16 +490,20 @@ const ReelsPage = () => {
         </main>
 
         {/* Scroll Indicator (Desktop) */}
-        <div className="hidden lg:block fixed right-8 top-1/2 -translate-y-1/2 z-30">
-          <div className="flex flex-col gap-2">
+        <div className="hidden lg:block fixed right-6 top-1/2 -translate-y-1/2 z-30">
+          <div className="flex flex-col gap-2 bg-white/20 backdrop-blur-md p-2 rounded-full">
             {reels.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setCurrentReelIndex(index)}
+                onClick={() => {
+                  if (!isScrolling.current) {
+                    setCurrentReelIndex(index);
+                  }
+                }}
                 className={`w-2 rounded-full transition-all ${
                   index === currentReelIndex 
                     ? 'bg-pink-500 h-8' 
-                    : 'bg-gray-300 hover:bg-gray-400 h-2'
+                    : 'bg-gray-400 hover:bg-pink-300 h-2'
                 }`}
               />
             ))}
@@ -535,35 +512,35 @@ const ReelsPage = () => {
       </div>
 
       {/* Bottom Navigation - Mobile */}
-      <nav className="lg:hidden bg-pink-500 shadow-lg fixed bottom-0 left-0 right-0 z-40">
-        <div className="flex justify-around items-center py-3">
+      <nav className="lg:hidden bg-pink-500/95 backdrop-blur-md shadow-lg fixed bottom-0 left-0 right-0 z-40">
+        <div className="flex justify-around items-center py-2 pb-safe">
           <button 
-            onClick={() => navigate('/dashboard')} 
-            className="flex flex-col items-center gap-1 text-white/60"
+            onClick={() => handleNavigation('/dashboard')} 
+            className="flex flex-col items-center gap-1 text-white/60 py-2"
           >
-            <Home size={24} />
-            <span className="text-xs font-medium">Home</span>
+            <Home size={22} />
+            <span className="text-[10px] font-medium">Home</span>
           </button>
           <button 
-            onClick={() => navigate('/reels')} 
-            className="flex flex-col items-center gap-1 text-white"
+            onClick={() => handleNavigation('/reels')} 
+            className="flex flex-col items-center gap-1 text-white py-2"
           >
-            <Grid size={24} />
-            <span className="text-xs font-medium">Reels</span>
+            <Grid size={22} />
+            <span className="text-[10px] font-medium">Reels</span>
           </button>
           <button 
-            onClick={() => navigate('/userList')} 
-            className="flex flex-col items-center gap-1 text-white/60"
+            onClick={() => handleNavigation('/userList')} 
+            className="flex flex-col items-center gap-1 text-white/60 py-2"
           >
-            <MessageCircle size={24} />
-            <span className="text-xs font-medium">Chat</span>
+            <MessageCircle size={22} />
+            <span className="text-[10px] font-medium">Chat</span>
           </button>
           <button 
-            onClick={() => navigate('/myprofile')} 
-            className="flex flex-col items-center gap-1 text-white/60"
+            onClick={() => handleNavigation('/myprofile')} 
+            className="flex flex-col items-center gap-1 text-white/60 py-2"
           >
-            <User size={24} />
-            <span className="text-xs font-medium">Profile</span>
+            <User size={22} />
+            <span className="text-[10px] font-medium">Profile</span>
           </button>
         </div>
       </nav>
