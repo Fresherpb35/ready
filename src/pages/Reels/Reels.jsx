@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Home, Grid, MessageCircle, User, Plus, Volume2, VolumeX, Pause, Play, X, Send, Heart, Share2 } from 'lucide-react';
+import { Home, Grid, MessageCircle, User, Plus, Volume2, VolumeX, Play, X, Send, ChevronUp } from 'lucide-react';
 
 // Add Reel Modal
 const AddReelModal = ({ isOpen, onClose }) => {
@@ -269,10 +268,10 @@ const ReelVideo = ({ reel, isActive }) => {
 };
 
 const ReelsPage = () => {
-  const navigate = useNavigate();
   const [currentReelIndex, setCurrentReelIndex] = useState(0);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCommentModal, setShowCommentModal] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const containerRef = useRef(null);
   const touchStartY = useRef(0);
   const isScrolling = useRef(false);
@@ -318,7 +317,52 @@ const ReelsPage = () => {
       video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
       thumbnail: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=800&fit=crop'
     },
+    {
+      id: 5,
+      username: 'fitness_guru',
+      title: 'Morning workout routine',
+      hashtag: '#fitness #health',
+      likes: '4.2K',
+      comments: '890',
+      video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+      thumbnail: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&h=800&fit=crop'
+    },
+    {
+      id: 6,
+      username: 'tech_reviewer',
+      title: 'Latest gadget review',
+      hashtag: '#tech #gadgets',
+      likes: '5.1K',
+      comments: '1.2K',
+      video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+      thumbnail: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=800&fit=crop'
+    },
+    {
+      id: 7,
+      username: 'music_lover',
+      title: 'Acoustic session',
+      hashtag: '#music #acoustic',
+      likes: '3.5K',
+      comments: '567',
+      video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+      thumbnail: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=800&fit=crop'
+    },
+    {
+      id: 8,
+      username: 'artist_creative',
+      title: 'Digital art process',
+      hashtag: '#art #digital',
+      likes: '2.8K',
+      comments: '445',
+      video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+      thumbnail: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=400&h=800&fit=crop'
+    },
   ];
+
+  // Show scroll to top button when user is past the 2nd reel
+  useEffect(() => {
+    setShowScrollTop(currentReelIndex > 1);
+  }, [currentReelIndex]);
 
   const handleTouchStart = (e) => {
     touchStartY.current = e.touches[0].clientY;
@@ -361,11 +405,19 @@ const ReelsPage = () => {
   };
 
   const handleNavigation = (path) => {
-    navigate(path);
+    console.log('Navigating to:', path);
+    // Use React Router's navigate or implement your navigation logic here
+    // Example: navigate(path);
+    alert(`Navigation to ${path} - Implement with React Router`);
+  };
+
+  const scrollToTop = () => {
+    setCurrentReelIndex(0);
   };
 
   return (
     <div className="h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 flex overflow-hidden">
+      {/* Left Sidebar Navigation - Desktop */}
       <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white shadow-lg z-40">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
@@ -422,7 +474,9 @@ const ReelsPage = () => {
         </div>
       </aside>
 
+      {/* Main Content Wrapper */}
       <div className="flex-1 lg:ml-64 flex flex-col h-screen">
+        {/* Header */}
         <header className="bg-white/80 backdrop-blur-md shadow-sm z-30 flex-shrink-0">
           <div className="px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-3">
@@ -441,6 +495,7 @@ const ReelsPage = () => {
           </div>
         </header>
 
+        {/* Reels Container */}
         <main 
           ref={containerRef}
           className="flex-1 overflow-hidden"
@@ -473,6 +528,7 @@ const ReelsPage = () => {
           </div>
         </main>
 
+        {/* Scroll Indicator (Desktop) */}
         <div className="hidden lg:block fixed right-6 top-1/2 -translate-y-1/2 z-30">
           <div className="flex flex-col gap-2 bg-white/20 backdrop-blur-md p-2 rounded-full">
             {reels.map((_, index) => (
@@ -492,8 +548,19 @@ const ReelsPage = () => {
             ))}
           </div>
         </div>
+
+        {/* Scroll to Top Button */}
+        {showScrollTop && (
+          <button
+            onClick={scrollToTop}
+            className="fixed bottom-20 lg:bottom-8 right-4 lg:right-24 z-30 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 p-3 sm:p-4 rounded-full shadow-lg transition-all hover:scale-110 animate-bounce"
+          >
+            <ChevronUp className="text-white" size={24} />
+          </button>
+        )}
       </div>
 
+      {/* Bottom Navigation - Mobile */}
       <nav className="lg:hidden bg-pink-500/95 backdrop-blur-md shadow-lg fixed bottom-0 left-0 right-0 z-40">
         <div className="flex justify-around items-center py-2 pb-safe">
           <button 
@@ -527,6 +594,7 @@ const ReelsPage = () => {
         </div>
       </nav>
 
+      {/* Modals */}
       <AddReelModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
       <CommentModal 
         isOpen={showCommentModal} 
