@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Home, Grid, MessageCircle, User, Plus, Volume2, VolumeX, Pause, Play, X, Send, Heart, Share2 } from 'lucide-react';
 
 // Add Reel Modal
@@ -47,7 +48,6 @@ const AddReelModal = ({ isOpen, onClose }) => {
         </div>
 
         <div className="p-6 space-y-4">
-          {/* File Upload */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Upload Video/Image</label>
             <input
@@ -67,7 +67,6 @@ const AddReelModal = ({ isOpen, onClose }) => {
             )}
           </div>
 
-          {/* Title */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Title</label>
             <input
@@ -79,7 +78,6 @@ const AddReelModal = ({ isOpen, onClose }) => {
             />
           </div>
 
-          {/* Hashtag */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Hashtags</label>
             <input
@@ -91,7 +89,6 @@ const AddReelModal = ({ isOpen, onClose }) => {
             />
           </div>
 
-          {/* Submit Button */}
           <button
             onClick={handleSubmit}
             className="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 px-6 rounded-full font-semibold text-lg transition-colors"
@@ -137,7 +134,7 @@ const CommentModal = ({ isOpen, onClose, reel }) => {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {comments.map((c) => (
             <div key={c.id} className="flex gap-3">
-              <div className="w-10 h-10 bg-linear-to-br from-pink-400 to-purple-400 rounded-full flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full flex items-center justify-center shrink-0">
                 <span className="text-white font-semibold text-sm">{c.username[0]}</span>
               </div>
               <div className="flex-1">
@@ -219,7 +216,6 @@ const ReelVideo = ({ reel, isActive }) => {
       onMouseLeave={() => setShowControls(false)}
       onClick={togglePlayPause}
     >
-      {/* Video */}
       {reel.video ? (
         <video
           ref={videoRef}
@@ -239,7 +235,6 @@ const ReelVideo = ({ reel, isActive }) => {
         </div>
       )}
 
-      {/* Play/Pause Overlay */}
       {showControls && !isPlaying && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity pointer-events-none">
           <div className="bg-white/30 backdrop-blur-sm p-4 rounded-full">
@@ -248,13 +243,11 @@ const ReelVideo = ({ reel, isActive }) => {
         </div>
       )}
 
-      {/* linear Overlay */}
-      <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-black/20 pointer-events-none"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 pointer-events-none"></div>
 
-      {/* Bottom Info */}
       <div className="absolute bottom-2 sm:bottom-3 lg:bottom-4 left-0 right-0 px-3 sm:px-4 text-white pointer-events-none">
         <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
-          <div className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 bg-linear-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
+          <div className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
             <span className="text-white font-bold text-[10px] sm:text-xs">@</span>
           </div>
           <span className="text-[10px] sm:text-xs lg:text-sm font-semibold">{reel.username}</span>
@@ -263,9 +256,7 @@ const ReelVideo = ({ reel, isActive }) => {
         <p className="text-[10px] sm:text-xs lg:text-sm opacity-95 font-medium">{reel.hashtag}</p>
       </div>
 
-      {/* Right Side Actions - Only Mute Button */}
       <div className="absolute right-2 sm:right-3 lg:right-4 bottom-14 sm:bottom-16 lg:bottom-20 pointer-events-auto">
-        {/* Mute Button */}
         <button 
           onClick={toggleMute}
           className="w-9 h-9 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
@@ -278,6 +269,7 @@ const ReelVideo = ({ reel, isActive }) => {
 };
 
 const ReelsPage = () => {
+  const navigate = useNavigate();
   const [currentReelIndex, setCurrentReelIndex] = useState(0);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCommentModal, setShowCommentModal] = useState(false);
@@ -338,7 +330,6 @@ const ReelsPage = () => {
     const touchEndY = e.changedTouches[0].clientY;
     const diff = touchStartY.current - touchEndY;
 
-    // Require at least 50px swipe to change reel
     if (Math.abs(diff) > 50) {
       isScrolling.current = true;
       if (diff > 0 && currentReelIndex < reels.length - 1) {
@@ -356,7 +347,6 @@ const ReelsPage = () => {
     e.preventDefault();
     if (isScrolling.current) return;
 
-    // Require more scroll distance to prevent accidental scrolling
     if (Math.abs(e.deltaY) > 30) {
       isScrolling.current = true;
       if (e.deltaY > 0 && currentReelIndex < reels.length - 1) {
@@ -371,17 +361,15 @@ const ReelsPage = () => {
   };
 
   const handleNavigation = (path) => {
-    // Navigation using window.location for different pages
-    window.location.href = path;
+    navigate(path);
   };
 
   return (
-    <div className="h-screen bg-linear-to-br from-pink-50 via-purple-50 to-blue-50 flex overflow-hidden">
-      {/* Left Sidebar Navigation - Desktop */}
+    <div className="h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 flex overflow-hidden">
       <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white shadow-lg z-40">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-linear-to-br from-pink-400 to-pink-600 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xl">R</span>
             </div>
             <h1 className="text-2xl font-bold text-gray-800">Ruready</h1>
@@ -422,7 +410,7 @@ const ReelsPage = () => {
           </button>
         </nav>
 
-        <div className="p-4 m-4 bg-linear-to-br from-pink-500 to-purple-500 rounded-xl text-white">
+        <div className="p-4 m-4 bg-gradient-to-br from-pink-500 to-purple-500 rounded-xl text-white">
           <h3 className="font-bold mb-2">Go Premium</h3>
           <p className="text-sm mb-3 opacity-90">Unlock all features!</p>
           <button
@@ -434,13 +422,11 @@ const ReelsPage = () => {
         </div>
       </aside>
 
-      {/* Main Content Wrapper */}
       <div className="flex-1 lg:ml-64 flex flex-col h-screen">
-        {/* Header - Now visible on mobile with logo */}
-        <header className="bg-white/80 backdrop-blur-md shadow-sm z-30 shrink-0">
+        <header className="bg-white/80 backdrop-blur-md shadow-sm z-30 flex-shrink-0">
           <div className="px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-linear-to-br from-pink-400 to-pink-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-pink-400 to-pink-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-base sm:text-lg">R</span>
               </div>
               <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-pink-500">R U Ready</h1>
@@ -448,14 +434,13 @@ const ReelsPage = () => {
 
             <button 
               onClick={() => setShowAddModal(true)}
-              className="bg-linear-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 p-2 sm:p-3 rounded-full shadow-lg transition-all hover:scale-105"
+              className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 p-2 sm:p-3 rounded-full shadow-lg transition-all hover:scale-105"
             >
               <Plus className="text-white" size={20} />
             </button>
           </div>
         </header>
 
-        {/* Reels Container - Adjusted height for header */}
         <main 
           ref={containerRef}
           className="flex-1 overflow-hidden"
@@ -477,7 +462,6 @@ const ReelsPage = () => {
                   transform: `translateY(${index * 100}%)`
                 }}
               >
-                {/* Mobile: Contained with padding, Desktop: Contained */}
                 <div className="w-full max-w-sm h-[calc(75vh-40px)] sm:max-w-md sm:h-[calc(78vh-50px)] lg:max-w-lg lg:h-[85vh]">
                   <ReelVideo 
                     reel={reel} 
@@ -489,7 +473,6 @@ const ReelsPage = () => {
           </div>
         </main>
 
-        {/* Scroll Indicator (Desktop) */}
         <div className="hidden lg:block fixed right-6 top-1/2 -translate-y-1/2 z-30">
           <div className="flex flex-col gap-2 bg-white/20 backdrop-blur-md p-2 rounded-full">
             {reels.map((_, index) => (
@@ -511,7 +494,6 @@ const ReelsPage = () => {
         </div>
       </div>
 
-      {/* Bottom Navigation - Mobile */}
       <nav className="lg:hidden bg-pink-500/95 backdrop-blur-md shadow-lg fixed bottom-0 left-0 right-0 z-40">
         <div className="flex justify-around items-center py-2 pb-safe">
           <button 
@@ -545,7 +527,6 @@ const ReelsPage = () => {
         </div>
       </nav>
 
-      {/* Modals */}
       <AddReelModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
       <CommentModal 
         isOpen={showCommentModal} 
