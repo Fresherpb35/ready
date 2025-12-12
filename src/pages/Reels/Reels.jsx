@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Home, Grid, MessageCircle, User, Plus, Volume2, VolumeX, Play, X, Send, ChevronUp } from 'lucide-react';
 
 // Add Reel Modal
@@ -268,6 +269,7 @@ const ReelVideo = ({ reel, isActive }) => {
 };
 
 const ReelsPage = () => {
+  const navigate = useNavigate();
   const [currentReelIndex, setCurrentReelIndex] = useState(0);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCommentModal, setShowCommentModal] = useState(false);
@@ -405,10 +407,7 @@ const ReelsPage = () => {
   };
 
   const handleNavigation = (path) => {
-    console.log('Navigating to:', path);
-    // Use React Router's navigate or implement your navigation logic here
-    // Example: navigate(path);
-    alert(`Navigation to ${path} - Implement with React Router`);
+    navigate(path);
   };
 
   const scrollToTop = () => {
