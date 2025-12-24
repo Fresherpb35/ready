@@ -1,3 +1,4 @@
+// src/pages/ForgotPassword/ForgotPassword.jsx
 import React, { useState } from 'react';
 import { Mail, ArrowLeft } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
@@ -45,8 +46,6 @@ const Input = ({
   value, 
   onChange, 
   disabled = false,
-  name = '',
-  required = false,
   error = '',
   className = ''
 }) => {
@@ -65,8 +64,6 @@ const Input = ({
           value={value}
           onChange={onChange}
           disabled={disabled}
-          name={name}
-          required={required}
           className={`
             w-full py-4 pr-4 rounded-2xl border-2 
             focus:outline-none text-lg transition-colors
@@ -92,17 +89,19 @@ const ForgotPassword = () => {
 const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError('');
+    setSuccessMessage('');
 
-    if (!email) {
+    if (!email.trim()) {
       setError('Email is required');
       return;
     }
@@ -128,7 +127,7 @@ const navigate = useNavigate();
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !isLoading) {
       handleSubmit();
     }
   };
@@ -148,7 +147,7 @@ const navigate = useNavigate();
         {/* Logo */}
         <div className="bg-white rounded-full w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex items-center justify-center mx-auto mb-6 sm:mb-8 shadow-lg">
           <div className="text-center">
-            <div className="text-3xl sm:text-4xl font-bold text-blue-600">R</div>
+            <div className="text-3xl sm:text-4xl font-bold text-pink-600">R</div>
             <div className="text-xs font-semibold text-gray-600">Ruready</div>
           </div>
         </div>
@@ -160,7 +159,30 @@ const navigate = useNavigate();
 
         {/* Reset Form Card */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 w-full shadow-xl mb-6">
-          {!isSubmitted ? (
+          {successMessage ? (
+            <div className="text-center py-8">
+              <div className="bg-green-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                <svg className="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-3">Email Sent!</h3>
+              <p className="text-gray-600 mb-2 leading-relaxed">{successMessage}</p>
+              <p className="text-sm text-gray-500 mt-6">
+                Didn't receive it? Check spam or try again.
+              </p>
+              <Button 
+                onClick={() => {
+                  setSuccessMessage('');
+                  setError('');
+                }} 
+                variant="outline" 
+                className="mt-6"
+              >
+                Try Another Email
+              </Button>
+            </div>
+          ) : (
             <div className="space-y-5">
               <div onKeyPress={handleKeyPress}>
                 <Input
@@ -171,39 +193,28 @@ const navigate = useNavigate();
                   onChange={(e) => {
                     setEmail(e.target.value);
                     setError('');
+                    setSuccessMessage('');
                   }}
                   error={error}
-                  required
+                  disabled={isLoading}
                 />
               </div>
 
-              <Button onClick={handleSubmit} variant="primary">
-                Send Reset Link
-              </Button>
-            </div>
-          ) : (
-            <div className="text-center py-4">
-              <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">Email Sent!</h3>
-              <p className="text-gray-600">Check your inbox for the reset link.</p>
-              <button
-                onClick={() => setIsSubmitted(false)}
-                className="mt-4 text-pink-500 font-medium hover:text-pink-600"
+              <Button 
+                onClick={handleSubmit} 
+                variant="primary"
+                disabled={isLoading}
               >
-                Resend Email
-              </button>
+                {isLoading ? 'Sending...' : 'Send Reset Link'}
+              </Button>
             </div>
           )}
         </div>
 
         {/* Helper Text */}
-        <p className="text-white text-center text-sm sm:text-base px-4">
+        <p className="text-white text-center text-sm sm:text-base px-4 leading-relaxed">
           Enter your email and we'll send you a link<br className="hidden sm:block" />
-          to reset your password.
+          to reset your password securely.
         </p>
       </div>
     </div>

@@ -1,101 +1,118 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  signInWithPopup, 
-  signOut, 
-  onAuthStateChanged 
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
 } from 'firebase/auth';
-import { auth, googleProvider } from '../config/firebase';
+import { doc,setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../config/firebase.js';   
+import { requestFCMToken } from "../config/firebase";
 
+const googleProvider = new GoogleAuthProvider();
 const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Sign in with Google
-  const signInWithGoogle = async () => {
-    try {
-      setError(null);
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      
-      console.log('User signed in:', user);
-      
-      // Store user info in localStorage
-      localStorage.setItem('userEmail', user.email);
-      localStorage.setItem('userName', user.displayName);
-      localStorage.setItem('userPhoto', user.photoURL);
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('isGuest', 'false');
-      
-      return { success: true, user };
-    } catch (error) {
-      console.error('Error signing in with Google:', error);
-      setError(error.message);
-      
-      // Handle specific error codes
-      if (error.code === 'auth/popup-closed-by-user') {
-        setError('Sign-in popup was closed. Please try again.');
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        setError('Sign-in was cancelled.');
-      } else if (error.code === 'auth/popup-blocked') {
-        setError('Sign-in popup was blocked by the browser.');
-      }
-      
-      return { success: false, error: error.message };
-    }
-  };
+const signInWithGoogle = async () => {
+  try {
+    console.log("Starting Google login...");
 
-  // Sign out
+    const result = await signInWithPopup(auth, googleProvider);
+    const firebaseUser = result.user;
+
+    console.log("Google login successful! UID:", firebaseUser.uid);
+    console.log("Display name:", firebaseUser.displayName);
+    console.log("Email:", firebaseUser.email);
+
+    // FORCE SAVE TO FIRESTORE + LOUD CONFIRMATION
+    await setDoc(doc(db, 'users', firebaseUser.uid), {
+      uid: firebaseUser.uid,
+      displayName: firebaseUser.displayName || 'Anonymous',
+      email: firebaseUser.email,
+      photoURL: firebaseUser.photoURL || '',
+      online: true,
+      lastSeen: serverTimestamp(),
+      createdAt: serverTimestamp(),
+    }, { merge: true });
+
+    // LOUD SUCCESS MESSAGES — YOU CANNOT MISS THESE
+    console.log("USER SAVED TO FIRESTORE SUCCESSFULLY");
+    console.log("Go to Firebase Console → Firestore → users →", firebaseUser.uid);
+    alert(`SUCCESS! User saved in Firestore!\nUID: ${firebaseUser.uid}\nCheck Firebase Console now!`);
+
+    
+
+    return { success: true, user: firebaseUser };
+
+  } catch (error) {
+    console.error("LOGIN OR FIRESTORE WRITE FAILED:", error);
+    alert("ERROR: " + error.message);
+    return { success: false, error: error.message };
+  }
+};
+
   const logout = async () => {
-    try {
-      await signOut(auth);
-      
-      // Clear localStorage
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('userName');
-      localStorage.removeItem('userPhoto');
-      localStorage.removeItem('isLoggedIn');
-      
-      console.log('User signed out');
-      return { success: true };
-    } catch (error) {
-      console.error('Error signing out:', error);
-      setError(error.message);
-      return { success: false, error: error.message };
+    if (user) {
+      // Mark user as offline before signing out
+      await setDoc(doc(db, 'users', user.uid), {
+        online: false,
+        lastSeen: serverTimestamp()
+      }, { merge: true });
     }
+
+    await signOut(auth);
+    localStorage.clear();
   };
 
-  // Listen for auth state changes
+  // Keep online status updated in real-time
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-      
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        console.log('User is logged in:', currentUser.email);
+        setUser(currentUser);
+
+        // Update online status every time auth state changes
+        await setDoc(doc(db, 'users', currentUser.uid), {
+          online: true,
+          lastSeen: serverTimestamp()
+        }, { merge: true });
       } else {
-        console.log('User is logged out');
+        setUser(null);
       }
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
+  // Optional: Update online status when tab closes/refreshes
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (user) {
+        navigator.sendBeacon && navigator.sendBeacon('/api/update-status', JSON.stringify({
+          uid: user.uid,
+          online: false,
+          lastSeen: new Date()
+        }));
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [user]);
+
   const value = {
     user,
     loading,
-    error,
     signInWithGoogle,
     logout
   };
